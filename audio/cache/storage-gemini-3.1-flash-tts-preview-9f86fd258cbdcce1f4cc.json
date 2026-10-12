@@ -1,0 +1,11 @@
+{
+  "scene": "storage",
+  "backend": "gemini-3.1-flash-tts-preview",
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "text": "At an illustrative one kilobyte per stored message, four million messages add about four gigabytes per day: roughly three hundred sixty gigabytes over ninety days, before indexes, replicas, backups, or attachments. When measured database limits demand it, hash conversation identifiers across shards. Add time buckets for very large histories, and an explicit strategy for hot conversations. Store media in object storage behind a CDN, with access controlled URLs. Never put video bytes in the message row.",
+  "sha256": "7a60f3ce29ce713d11391f4989570caa55109a48372172fc4c4c9325d8fff1d8",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 33.92
+}

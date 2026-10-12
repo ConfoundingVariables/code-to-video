@@ -1,0 +1,11 @@
+{
+  "scene": "fanout",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "Delivery workers expand a conversation event into recipient deliveries and route them to the right gateways. A durable partitioned log can absorb bursts; key events by conversation to preserve per-conversation processing order. For small groups, push to connected members. For enormous rooms, avoid copying every message into every user's inbox: retain a shared conversation log and let devices fetch by cursor. One hot room can overwhelm an otherwise balanced system.",
+  "sha256": "0cce98df3655e2bca72bf56ad309527fe841c3ad99c57d5b63b725af4d94f639",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 30.330958333333335
+}

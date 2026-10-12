@@ -1,0 +1,11 @@
+{
+  "scene": "gateways",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "When connections become the bottleneck, split WebSocket gateways from message handling. A load balancer distributes new connections. Gateways hold sockets and a short lived mapping from user to gateway. Fifty thousand connections at an assumed thirty two kibibytes of state already use about one point five gibibytes, before runtime and TLS overhead. Benchmark memory, heartbeats, and file descriptors. Add capacity and failure headroom from measurements, not from the account count.",
+  "sha256": "92ddf23242851bb7bcd898c0292172ff2a85862926368b3b7b9762c2734ca3fa",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 31.130958333333332
+}

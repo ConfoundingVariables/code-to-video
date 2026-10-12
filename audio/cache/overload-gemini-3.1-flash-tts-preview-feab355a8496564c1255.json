@@ -1,0 +1,11 @@
+{
+  "scene": "overload",
+  "backend": "gemini-3.1-flash-tts-preview",
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "text": "A queue only helps if workers eventually process faster than new work arrives. Little's law relates in-flight work to arrival rate times latency. At four hundred sixty requests a second and two tenths of a second, roughly ninety two requests are in flight on average. If latency quadruples, so does that count. Bound queues, cap per-client buffers, and use exponential backoff with jitter. Drop stale typing signals before you compromise accepted messages.",
+  "sha256": "5e7ea8d1470d1ea2f6740b9d92a4252884ad7ffc05da8802817a54f82cee1f66",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 30.32
+}

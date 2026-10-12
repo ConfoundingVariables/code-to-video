@@ -1,0 +1,11 @@
+{
+  "scene": "closing",
+  "backend": "gemini-3.1-flash-tts-preview",
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "text": "A million users does not require a million moving parts. Start with explicit promises and a quantified workload. Make acceptance durable, retries safe, and ordering local. Separate connections from delivery when measurements justify it. Partition the data when limits demand it. Keep failure modes visible. The architecture is the consequence of those decisions. Build the smallest system that keeps the promise, then prove where it needs to grow.",
+  "sha256": "c019ce12250258423bc3c6d9bd751bb774a2e487e5cb2f041ca275019051538a",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 30.56
+}

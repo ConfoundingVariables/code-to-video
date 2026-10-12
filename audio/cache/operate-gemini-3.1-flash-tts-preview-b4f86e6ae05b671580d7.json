@@ -1,0 +1,11 @@
+{
+  "scene": "operate",
+  "backend": "gemini-3.1-flash-tts-preview",
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "text": "Track send-to-durable-ack latency separately from recipient delivery lag. Watch socket counts, database saturation, outbox age, queue age, reconnect rates, and missing sequence gaps. Load test realistic conversations, then include a giant room, slow clients, and a reconnect storm. Kill a gateway. Pause a relay. Fail a database replica. Verify the promises still hold, and measure the behavior when they cannot. Capacity is evidence, not a box on a diagram.",
+  "sha256": "3b20f0e2a966fc4f837ce1f800b186518ac03b4d0bcc3d42d31e36d16042f658",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 32.52
+}

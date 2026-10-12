@@ -1,0 +1,11 @@
+{
+  "scene": "ordering",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "A timeout does not tell the client whether its write succeeded. Give each send a stable client message identifier, scoped to its sender and conversation, and enforce uniqueness. A retry returns the existing result instead of creating a second message. Allocate a monotonic sequence within each conversation transaction, using a serialized counter or equivalent single owner. This orders that conversation, not the whole planet. Delivered and read receipts remain separate state.",
+  "sha256": "3c0058959ad1a993cfae4d4ad4eee1a753c7a9e605b30228fb6782d0f1557906",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 26.770958333333333
+}

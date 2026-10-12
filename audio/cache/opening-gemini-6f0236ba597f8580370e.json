@@ -1,0 +1,11 @@
+{
+  "scene": "opening",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "A chat application feels simple. You type a message. Someone else sees it. Now imagine a million people depending on that promise. Systems design is not collecting impressive technologies. It is deciding what must remain true when traffic grows, machines fail, and the network refuses to cooperate. Let's build from the message outward.",
+  "sha256": "82208dbd82ed8a8bf391a180fe68a9fb9478a4dbfdadb3dcb024bee189893938",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 22.65095833333333
+}

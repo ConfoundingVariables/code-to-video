@@ -1,0 +1,11 @@
+{
+  "scene": "promises",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "Start with the user experience. An accepted message must survive a process crash. Members of a conversation should see a consistent message order. A disconnected device must catch up. Set a measurable latency target, for example two hundred milliseconds at the ninety fifth percentile inside one region. That is a design goal, not a guarantee. Delivery, reading, and durable acceptance are three different events.",
+  "sha256": "1c58495266c60d542a4c95c5da979d8609db5fe000169390ef7214bcb1538603",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 25.530958333333334
+}

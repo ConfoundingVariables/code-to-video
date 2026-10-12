@@ -1,0 +1,11 @@
+{
+  "scene": "durability",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "Follow a message. The server authenticates the sender and checks conversation membership. In one transaction, it stores the message and an outbox event. Only after that transaction commits does it acknowledge durable acceptance. A relay publishes the outbox event to delivery workers. If the relay crashes, it retries. This removes the dangerous gap between saving a message and announcing it, but retries mean consumers must tolerate duplicates.",
+  "sha256": "8352d1c722bc3953c65cb1c4999cb463845553fad87c0db40116e76fe5c94432",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 28.050958333333334
+}

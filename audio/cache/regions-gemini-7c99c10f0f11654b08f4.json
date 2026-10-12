@@ -1,0 +1,11 @@
+{
+  "scene": "regions",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "Replicate across availability zones, exercise failover, and restore backups in drills. For a global product, start with a home region for each conversation and route its writes there. A distant user pays network latency. Asynchronous cross-region replication improves recovery options but can lose recently accepted writes if the primary region vanishes. If zero loss is required for that failure, acknowledge only after the required cross-region quorum. That costs latency and can reduce availability during a partition.",
+  "sha256": "3f391bbd040ab31cd5dd2fb27552ee550fbbea8d6cf7854d98222b5e2692744e",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 32.53095833333333
+}

@@ -1,0 +1,11 @@
+{
+  "scene": "ephemeral",
+  "backend": "gemini-3.1-flash-tts-preview",
+  "model": "gemini-3.1-flash-tts-preview",
+  "voice": "Charon",
+  "text": "Presence and typing indicators can expire. A message cannot silently disappear after acceptance. Keep ephemeral state in a time limited store, debounce typing events, and aggregate presence changes. Route mobile notifications through the platform push APIs, but fetch the actual message from your durable service. Authenticate sockets, authorize every conversation action, encrypt transport, rate limit senders, and define retention. End to end encryption is a separate product and key management decision.",
+  "sha256": "b9d5be349193ac2d144da7d4a5d5cb6ff8c1dce56b92d3cecc742d46a8d9d181",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 31.72
+}

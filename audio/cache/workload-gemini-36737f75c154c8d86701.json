@@ -1,0 +1,11 @@
+{
+  "scene": "workload",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "One million registered accounts is not one million active sockets. Assume two hundred thousand daily active users, fifty thousand concurrent connections, and twenty messages per active user per day. That is four million messages a day, about forty six writes a second on average. A ten times peak gives roughly four hundred sixty. With eight recipient deliveries per message, the peak becomes about thirty seven hundred deliveries a second. Make your assumptions visible.",
+  "sha256": "fa380baf0c165667005303723af5990ebb24a32e8a4f23639a121e1110aea8a6",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 27.050958333333334
+}

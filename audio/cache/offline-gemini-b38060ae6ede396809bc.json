@@ -1,0 +1,11 @@
+{
+  "scene": "offline",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "The live connection is a convenience, not the record. A device reconnects with its last contiguous conversation sequence. The server reads later messages from durable history, while the client merges live events, deduplicates, and advances only across a gap free prefix. That closes the race between catch-up and live delivery. Redis Pub Sub can help with ephemeral routing, but its at-most-once delivery is not a durable message history.",
+  "sha256": "c7784d62d478f41f42ce7a0ba6a80da8432be6da06f8191a387744b4fe1b8b70",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 25.290958333333332
+}

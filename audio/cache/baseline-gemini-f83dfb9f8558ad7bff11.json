@@ -1,0 +1,11 @@
+{
+  "scene": "baseline",
+  "backend": "gemini",
+  "model": "gemini-2.5-flash-preview-tts",
+  "voice": "Charon",
+  "text": "Begin with a client, a single application service, and a relational database. Use an authenticated WebSocket for live events, and ordinary requests for history and uploads. The database stores conversation membership and messages. Index history by conversation and sequence. At this modeled write rate, a single well tuned database may be enough. Measure its actual limits before introducing shards, brokers, or ten microservices.",
+  "sha256": "b0c635f10cbca643dc0432b1ce580c365ac810b71204f3b14f25ca22ad8a80f2",
+  "sampleRate": 48000,
+  "channels": 1,
+  "duration": 26.010958333333335
+}
