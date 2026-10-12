@@ -1,0 +1,2 @@
+Upstream source: https://github.com/motiondivision/ai-kit/tree/d1c5c26f424adfd47c112d894e9d424b57338c7e/plugins/motion/skills/motion
+The upstream npm package `motion-ai` (14.0.0) declares `MIT` in `packages/motion-ai/package.json`; this repository revision does not include a LICENSE file. No executable package files were installed here. Consult the upstream package/repository for the complete license terms.
