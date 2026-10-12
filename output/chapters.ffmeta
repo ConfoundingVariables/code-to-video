@@ -1,0 +1,93 @@
+;FFMETADATA1
+title=ONE MILLION / Designing chat from first principles
+artist=Original audio production
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=0
+END=25867
+title=00 / THE QUESTION — One million.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=25867
+END=54600
+title=01 / FIRST PRINCIPLES — Start with promises.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=54600
+END=84867
+title=02 / MODEL THE LOAD — Accounts are not load.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=84867
+END=114100
+title=03 / THE SMALLEST USEFUL SYSTEM — Earn the complexity.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=114100
+END=145367
+title=04 / THE MESSAGE PATH — Commit. Then acknowledge.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=145367
+END=175367
+title=05 / RETRIES AND ORDER — One message. One identity.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=175367
+END=209700
+title=06 / SCALE CONNECTIONS — Sockets are their own workload.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=209700
+END=243233
+title=07 / SCALE DELIVERY — One write. Many deliveries.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=243233
+END=271733
+title=08 / RECONNECT WITHOUT GAPS — The socket is not the history.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=271733
+END=308867
+title=09 / SCALE THE DATA — Partition by conversation.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=308867
+END=343800
+title=10 / DIFFERENT DATA, DIFFERENT PROMISES — A typing dot is not a message.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=343800
+END=377333
+title=11 / BACKPRESSURE — Queues buy time. Not capacity.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=377333
+END=413067
+title=12 / FAILURE AND DISTANCE — Replication is a trade-off.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=413067
+END=448800
+title=13 / PROVE THE SYSTEM — Scale is an experiment.
+
+[CHAPTER]
+TIMEBASE=1/1000
+START=448800
+END=482567
+title=14 / THE TAKEAWAY — Scale the promises.
