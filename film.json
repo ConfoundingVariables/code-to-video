@@ -1,0 +1,129 @@
+{
+  "title": "ONE MILLION / Designing chat from first principles",
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "voice": "Charon",
+  "scenes": [
+    {
+      "id": "opening",
+      "chapter": "00 / THE QUESTION",
+      "title": "One million.",
+      "subtitle": "Not a diagram. A set of promises.",
+      "narration": "A chat application feels simple. You type a message. Someone else sees it. Now imagine a million people depending on that promise. Systems design is not collecting impressive technologies. It is deciding what must remain true when traffic grows, machines fail, and the network refuses to cooperate. Let's build from the message outward.",
+      "sources": [1, 2]
+    },
+    {
+      "id": "promises",
+      "chapter": "01 / FIRST PRINCIPLES",
+      "title": "Start with promises.",
+      "subtitle": "Requirements before components.",
+      "narration": "Start with the user experience. An accepted message must survive a process crash. Members of a conversation should see a consistent message order. A disconnected device must catch up. Set a measurable latency target, for example two hundred milliseconds at the ninety fifth percentile inside one region. That is a design goal, not a guarantee. Delivery, reading, and durable acceptance are three different events.",
+      "sources": [1, 3]
+    },
+    {
+      "id": "workload",
+      "chapter": "02 / MODEL THE LOAD",
+      "title": "Accounts are not load.",
+      "subtitle": "An illustrative workload, not a benchmark.",
+      "narration": "One million registered accounts is not one million active sockets. Assume two hundred thousand daily active users, fifty thousand concurrent connections, and twenty messages per active user per day. That is four million messages a day, about forty six writes a second on average. A ten times peak gives roughly four hundred sixty. With eight recipient deliveries per message, the peak becomes about thirty seven hundred deliveries a second. Make your assumptions visible.",
+      "sources": []
+    },
+    {
+      "id": "baseline",
+      "chapter": "03 / THE SMALLEST USEFUL SYSTEM",
+      "title": "Earn the complexity.",
+      "subtitle": "One service. One durable database. Measurements.",
+      "narration": "Begin with a client, a single application service, and a relational database. Use an authenticated WebSocket for live events, and ordinary requests for history and uploads. The database stores conversation membership and messages. Index history by conversation and sequence. At this modeled write rate, a single well tuned database may be enough. Measure its actual limits before introducing shards, brokers, or ten microservices.",
+      "sources": [2, 4]
+    },
+    {
+      "id": "durability",
+      "chapter": "04 / THE MESSAGE PATH",
+      "title": "Commit. Then acknowledge.",
+      "subtitle": "The database is the source of truth.",
+      "narration": "Follow a message. The server authenticates the sender and checks conversation membership. In one transaction, it stores the message and an outbox event. Only after that transaction commits does it acknowledge durable acceptance. A relay publishes the outbox event to delivery workers. If the relay crashes, it retries. This removes the dangerous gap between saving a message and announcing it, but retries mean consumers must tolerate duplicates.",
+      "sources": [5, 6]
+    },
+    {
+      "id": "ordering",
+      "chapter": "05 / RETRIES AND ORDER",
+      "title": "One message. One identity.",
+      "subtitle": "At-least-once delivery. Idempotent effects.",
+      "narration": "A timeout does not tell the client whether its write succeeded. Give each send a stable client message identifier, scoped to its sender and conversation, and enforce uniqueness. A retry returns the existing result instead of creating a second message. Allocate a monotonic sequence within each conversation transaction, using a serialized counter or equivalent single owner. This orders that conversation, not the whole planet. Delivered and read receipts remain separate state.",
+      "sources": [4, 6, 7]
+    },
+    {
+      "id": "gateways",
+      "chapter": "06 / SCALE CONNECTIONS",
+      "title": "Sockets are their own workload.",
+      "subtitle": "Connection state stays at the edge.",
+      "narration": "When connections become the bottleneck, split WebSocket gateways from message handling. A load balancer distributes new connections. Gateways hold sockets and a short lived mapping from user to gateway. Fifty thousand connections at an assumed thirty two kibibytes of state already use about one point five gibibytes, before runtime and TLS overhead. Benchmark memory, heartbeats, and file descriptors. Add capacity and failure headroom from measurements, not from the account count.",
+      "sources": [2, 8]
+    },
+    {
+      "id": "fanout",
+      "chapter": "07 / SCALE DELIVERY",
+      "title": "One write. Many deliveries.",
+      "subtitle": "Partition work. Bound the fan-out.",
+      "narration": "Delivery workers expand a conversation event into recipient deliveries and route them to the right gateways. A durable partitioned log can absorb bursts; key events by conversation to preserve per-conversation processing order. For small groups, push to connected members. For enormous rooms, avoid copying every message into every user's inbox: retain a shared conversation log and let devices fetch by cursor. One hot room can overwhelm an otherwise balanced system.",
+      "sources": [7, 9]
+    },
+    {
+      "id": "offline",
+      "chapter": "08 / RECONNECT WITHOUT GAPS",
+      "title": "The socket is not the history.",
+      "subtitle": "Persisted sequence → durable catch-up cursor.",
+      "narration": "The live connection is a convenience, not the record. A device reconnects with its last contiguous conversation sequence. The server reads later messages from durable history, while the client merges live events, deduplicates, and advances only across a gap free prefix. That closes the race between catch-up and live delivery. Redis Pub Sub can help with ephemeral routing, but its at-most-once delivery is not a durable message history.",
+      "sources": [9, 10]
+    },
+    {
+      "id": "storage",
+      "chapter": "09 / SCALE THE DATA",
+      "title": "Partition by conversation.",
+      "subtitle": "Keep the unit of order together.",
+      "narration": "At an illustrative one kilobyte per stored message, four million messages add about four gigabytes per day: roughly three hundred sixty gigabytes over ninety days, before indexes, replicas, backups, or attachments. When measured database limits demand it, hash conversation identifiers across shards. Add time buckets for very large histories, and an explicit strategy for hot conversations. Store media in object storage behind a CDN, with access controlled URLs. Never put video bytes in the message row.",
+      "sources": [4, 11, 12]
+    },
+    {
+      "id": "ephemeral",
+      "chapter": "10 / DIFFERENT DATA, DIFFERENT PROMISES",
+      "title": "A typing dot is not a message.",
+      "subtitle": "Spend durability where it matters.",
+      "narration": "Presence and typing indicators can expire. A message cannot silently disappear after acceptance. Keep ephemeral state in a time limited store, debounce typing events, and aggregate presence changes. Route mobile notifications through the platform push APIs, but fetch the actual message from your durable service. Authenticate sockets, authorize every conversation action, encrypt transport, rate limit senders, and define retention. End to end encryption is a separate product and key management decision.",
+      "sources": [10, 13, 14]
+    },
+    {
+      "id": "overload",
+      "chapter": "11 / BACKPRESSURE",
+      "title": "Queues buy time. Not capacity.",
+      "subtitle": "Protect durable messages; shed disposable work.",
+      "narration": "A queue only helps if workers eventually process faster than new work arrives. Little's law relates in-flight work to arrival rate times latency. At four hundred sixty requests a second and two tenths of a second, roughly ninety two requests are in flight on average. If latency quadruples, so does that count. Bound queues, cap per-client buffers, and use exponential backoff with jitter. Drop stale typing signals before you compromise accepted messages.",
+      "sources": [15, 16]
+    },
+    {
+      "id": "regions",
+      "chapter": "12 / FAILURE AND DISTANCE",
+      "title": "Replication is a trade-off.",
+      "subtitle": "Make the failure boundary explicit.",
+      "narration": "Replicate across availability zones, exercise failover, and restore backups in drills. For a global product, start with a home region for each conversation and route its writes there. A distant user pays network latency. Asynchronous cross-region replication improves recovery options but can lose recently accepted writes if the primary region vanishes. If zero loss is required for that failure, acknowledge only after the required cross-region quorum. That costs latency and can reduce availability during a partition.",
+      "sources": [17, 18]
+    },
+    {
+      "id": "operate",
+      "chapter": "13 / PROVE THE SYSTEM",
+      "title": "Scale is an experiment.",
+      "subtitle": "Observe → load test → fail → refine.",
+      "narration": "Track send-to-durable-ack latency separately from recipient delivery lag. Watch socket counts, database saturation, outbox age, queue age, reconnect rates, and missing sequence gaps. Load test realistic conversations, then include a giant room, slow clients, and a reconnect storm. Kill a gateway. Pause a relay. Fail a database replica. Verify the promises still hold, and measure the behavior when they cannot. Capacity is evidence, not a box on a diagram.",
+      "sources": [3, 15, 16]
+    },
+    {
+      "id": "closing",
+      "chapter": "14 / THE TAKEAWAY",
+      "title": "Scale the promises.",
+      "subtitle": "Not the diagram.",
+      "narration": "A million users does not require a million moving parts. Start with explicit promises and a quantified workload. Make acceptance durable, retries safe, and ordering local. Separate connections from delivery when measurements justify it. Partition the data when limits demand it. Keep failure modes visible. The architecture is the consequence of those decisions. Build the smallest system that keeps the promise, then prove where it needs to grow.",
+      "sources": []
+    }
+  ]
+}
