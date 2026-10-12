@@ -102,9 +102,29 @@ export function createStaticServer({ root = process.cwd() } = {}) {
 
     const extension = path.extname(filename).toLowerCase();
     const contentType = MIME_TYPES.get(extension) ?? 'application/octet-stream';
-    response.writeHead(200, {
+    let start = 0;
+    let end = stat.size - 1;
+    const requestedRange = request.method === 'GET' && typeof request.headers.range === 'string'
+      ? /^bytes=(\d*)-(\d*)$/.exec(request.headers.range) : null;
+    const partial = requestedRange && (requestedRange[1] || requestedRange[2]);
+    if (partial) {
+      if (requestedRange[1]) {
+        start = Number(requestedRange[1]);
+        if (requestedRange[2]) end = Math.min(end, Number(requestedRange[2]));
+      } else {
+        start = Math.max(0, stat.size - Number(requestedRange[2]));
+      }
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= stat.size) {
+        response.writeHead(416, { 'Content-Range': `bytes */${stat.size}` });
+        response.end();
+        return;
+      }
+      response.setHeader('Content-Range', `bytes ${start}-${end}/${stat.size}`);
+    }
+    response.writeHead(partial ? 206 : 200, {
       'Cache-Control': 'no-store',
-      'Content-Length': stat.size,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': end - start + 1,
       'Content-Type': contentType,
       'X-Content-Type-Options': 'nosniff',
     });
@@ -120,7 +140,7 @@ export function createStaticServer({ root = process.cwd() } = {}) {
       else response.destroy();
       return;
     }
-    response.end(body);
+    response.end(partial ? body.subarray(start, end + 1) : body);
   });
 }
 
