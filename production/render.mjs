@@ -170,6 +170,12 @@ function createFfmpegInput(label, fps, frameCount, filename) {
     '-frames:v', String(frameCount),
     '-fps_mode', 'cfr',
     '-an',
+    // Browser JPEGs are full-range BT.601; explicitly convert rather than only retagging.
+    '-vf', 'scale=in_range=full:out_range=limited:out_color_matrix=bt709,format=yuv420p',
+    '-color_range', 'tv',
+    '-colorspace', 'bt709',
+    '-color_primaries', 'bt709',
+    '-color_trc', 'bt709',
     '-c:v', 'libx264',
     '-preset', 'fast',
     '-crf', '18',
