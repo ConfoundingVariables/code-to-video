@@ -298,7 +298,8 @@ async function renderChunk({ browser, baseUrl, fps, startFrame, endFrame, filena
         await new Promise((resolve) => requestAnimationFrame(resolve));
       }, time);
       if (abortState.error) throw abortState.error;
-      const screenshot = await page.screenshot({ type: 'jpeg', quality: 92, animations: 'disabled' });
+      // Absolute-time seeking already freezes the film; do not finish native ScrollTimelines.
+      const screenshot = await page.screenshot({ type: 'jpeg', quality: 92, animations: 'allow' });
       await encoder.write(screenshot);
       if (consoleErrors.length) throw new Error(consoleErrors.join('\n'));
     }
@@ -392,7 +393,7 @@ async function capturePosters({ baseUrl, duration, fps, outputDir, timeline }) {
         await new Promise((resolve) => requestAnimationFrame(resolve));
       }, times[index]);
       const filename = path.join(outputDir, `poster-${String(index + 1).padStart(3, '0')}.jpg`);
-      await page.screenshot({ path: filename, type: 'jpeg', quality: 92, animations: 'disabled' });
+      await page.screenshot({ path: filename, type: 'jpeg', quality: 92, animations: 'allow' });
       files.push(filename);
     }
     await runCommand(FFMPEG, [

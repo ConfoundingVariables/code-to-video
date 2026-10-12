@@ -228,7 +228,7 @@ async function verifyBrowser(root, expected) {
         if (scene === undefined || scene === null) throw new Error(`sceneAt(${currentTime}) returned no scene`);
         await new Promise((resolve) => requestAnimationFrame(resolve));
       }, time);
-      const screenshot = await page.screenshot({ type: 'jpeg', quality: 35, animations: 'disabled' });
+      const screenshot = await page.screenshot({ type: 'jpeg', quality: 35, animations: 'allow' });
       if (screenshot.byteLength < 1024) throw new Error(`seek(${time}) produced an unexpectedly empty screenshot`);
       if (consoleErrors.length) throw new Error(consoleErrors.join('\n'));
     }
