@@ -1,0 +1,22 @@
+{
+  "name": "chat-at-a-million",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audio": "uv run --project audio python audio/synthesize.py",
+    "build": "node production/build.mjs",
+    "preview": "node production/serve.mjs",
+    "render": "node production/render.mjs",
+    "verify": "node production/verify.mjs"
+  },
+  "dependencies": {
+    "gsap": "3.13.0",
+    "three": "0.180.0",
+    "lottie-web": "5.13.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.11",
+    "playwright": "1.56.1"
+  }
+}

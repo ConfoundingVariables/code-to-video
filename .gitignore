@@ -1,0 +1,12 @@
+node_modules/
+.venv/
+audio/.venv/
+.env
+.env.*
+.cache/
+build/
+output/
+.DS_Store
+.playwright-mcp/
+__pycache__/
+*.pyc
