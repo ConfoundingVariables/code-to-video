@@ -1,0 +1,6 @@
+node_modules/
+out/segments/
+out/stills/
+out/*.wav
+out/video-silent.mp4
+out/make.log

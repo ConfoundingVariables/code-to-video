@@ -1,0 +1,181 @@
+/* ------------------------------------------------------------------ fonts */
+@font-face { font-family: Barlow; font-weight: 400; src: url(./fonts/barlow-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: Barlow; font-weight: 500; src: url(./fonts/barlow-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: Barlow; font-weight: 600; src: url(./fonts/barlow-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-weight: 500; src: url(./fonts/barlow-condensed-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-weight: 600; src: url(./fonts/barlow-condensed-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-weight: 700; src: url(./fonts/barlow-condensed-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-weight: 800; src: url(./fonts/barlow-condensed-latin-800-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Semi Condensed'; font-weight: 500; src: url(./fonts/barlow-semi-condensed-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow Semi Condensed'; font-weight: 600; src: url(./fonts/barlow-semi-condensed-latin-600-normal.woff2) format('woff2'); }
+
+/* ----------------------------------------------------------------- tokens
+   Transit-map world: enamel signage paper, ink, and one colour per "line".
+   Each line colour means one layer of the system, everywhere, always.     */
+:root {
+  --paper: #e8ebe7;      /* enamel signage, cool not cream */
+  --paper-hi: #f8f9f6;   /* station fill */
+  --ink: #15181c;
+  --ink-2: #4b525a;      /* secondary text, ink-tinted */
+  --rule: #c6ccc6;
+  --red: #da291c;        /* messages */
+  --blue: #0039a6;       /* connections / gateways */
+  --green: #00933c;      /* storage */
+  --amber: #fccc0a;      /* queue / log */
+  --violet: #b933ad;     /* presence */
+  --display: 'Barlow Condensed', sans-serif;
+  --text: Barlow, sans-serif;
+  --label: 'Barlow Semi Condensed', sans-serif;
+  view-transition-name: none; /* only named map elements morph; the page stays live */
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--ink); overflow: hidden; }
+::selection { background: var(--amber); color: var(--ink); }
+
+#viewport { position: fixed; inset: 0; display: grid; place-items: center; }
+#stage {
+  position: relative; width: 1920px; height: 1080px; overflow: hidden; flex: none;
+  background: var(--paper); color: var(--ink);
+  font: 500 40px/1.3 var(--text); font-kerning: normal;
+  font-variant-numeric: tabular-nums lining-nums;
+  transform-origin: 50% 50%;
+}
+#gl { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+#labels3d, #scenes { position: absolute; inset: 0; }
+.scene { position: absolute; inset: 0; visibility: hidden; }
+svg.map { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: visible; }
+
+/* ------------------------------------------------------------- type scale
+   Scale ~1.5 on a 40px body at 1080p (viewing distance of a TV, not a page). */
+.display { font: 800 216px/0.86 var(--display); letter-spacing: -0.02em; }
+.h1 { font: 700 104px/0.95 var(--display); letter-spacing: -0.01em; }
+.h2 { font: 700 68px/1 var(--display); }
+.body { font: 500 40px/1.3 var(--text); max-width: 26em; text-wrap: pretty; }
+.caption { font: 500 34px/1.32 var(--text); color: var(--ink-2); max-width: 30em; text-wrap: pretty; }
+.label { font: 600 30px/1.1 var(--label); }
+.small { font: 500 24px/1.35 var(--text); color: var(--ink-2); }
+.num { font: 700 1em/1 var(--display); font-variant-numeric: tabular-nums; }
+.line-clip { overflow: clip; padding-bottom: 0.08em; }
+
+/* scene signage: route bullet + title, top-left, like a platform sign */
+.sign { position: absolute; left: 120px; top: 92px; display: flex; align-items: center; gap: 28px; }
+.bullet {
+  width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; flex: none;
+  font: 700 58px/1 var(--display); color: var(--paper-hi); background: var(--ink);
+}
+.bullet.red { background: var(--red); } .bullet.blue { background: var(--blue); }
+.bullet.green { background: var(--green); } .bullet.amber { background: var(--amber); color: var(--ink); }
+.bullet.violet { background: var(--violet); }
+.sign .h1 { font-size: 88px; }
+
+.say { position: absolute; left: 120px; bottom: 96px; }
+.say.right { left: auto; right: 120px; text-align: right; }
+
+/* ----------------------------------------------------------- map grammar */
+.track { fill: none; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+.track.red { stroke: var(--red); } .track.blue { stroke: var(--blue); } .track.green { stroke: var(--green); }
+.track.amber { stroke: var(--amber); } .track.violet { stroke: var(--violet); } .track.ink { stroke: var(--ink); }
+.track.thin { stroke-width: 6; } .track.hair { stroke-width: 3; }
+.track.ghost { stroke: var(--rule); }
+.station { fill: var(--paper-hi); stroke: var(--ink); stroke-width: 6; }
+.station.big { stroke-width: 8; }
+.dot { fill: var(--red); }
+.dot.hollow { fill: var(--paper-hi); stroke: var(--ink-2); stroke-width: 4; }
+svg text { font-family: var(--label); font-weight: 600; font-size: 30px; fill: var(--ink); }
+svg text.lg { font: 700 44px var(--display); }
+svg text.sub { font: 500 24px var(--text); fill: var(--ink-2); }
+svg text.mid { text-anchor: middle; }
+svg text.end { text-anchor: end; }
+.hazard { fill: url(#hazard); }
+
+/* ------------------------------------------------- S0: the chat thread
+   A real chat column; it scrolls as messages arrive. The bubbles are revealed by
+   a scroll-driven animation (animation-timeline: view()) bound to that scroll. */
+.thread {
+  position: absolute; left: 660px; top: 170px; width: 600px; height: 740px;
+  overflow: hidden; scroll-timeline: --thread block;
+}
+.thread-inner { display: flex; flex-direction: column; gap: 18px; padding: 760px 8px 40px; }
+.bubble {
+  align-self: flex-start; max-width: 440px; padding: 18px 26px; border-radius: 30px 30px 30px 10px;
+  background: var(--paper-hi); font: 500 36px/1.25 var(--text); box-shadow: 0 2px 10px rgb(21 24 28 / 0.06);
+  animation: bubble-in linear both; animation-timeline: view(); animation-range: entry 0% entry 100%;
+  transform-origin: 0% 100%;
+}
+.bubble.me { align-self: flex-end; background: var(--red); color: var(--paper-hi); border-radius: 30px 30px 10px 30px; transform-origin: 100% 100%; }
+.bubble .meta { display: block; font: 500 20px/1 var(--label); opacity: 0.7; margin-top: 8px; text-align: right; }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(40px) scale(0.86); } to { opacity: 1; transform: none; } }
+.typing { display: inline-flex; gap: 8px; padding: 26px 28px; }
+.typing i { width: 13px; height: 13px; border-radius: 50%; background: var(--ink-2); display: block; }
+.thread-rail { position: absolute; left: 1300px; top: 170px; width: 6px; height: 740px; background: var(--rule); border-radius: 3px; }
+.thread-rail::after {
+  content: ''; position: absolute; inset: 0; background: var(--red); border-radius: 3px; transform-origin: top;
+  animation: rail linear both; animation-timeline: --thread;
+}
+@keyframes rail { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+#scenes { timeline-scope: --thread, --ledger; }
+
+/* ------------------------------------------- S2: the ledger (scroll-driven) */
+.ledger {
+  position: absolute; left: 80px; top: 250px; width: 1180px; height: 700px; overflow: hidden;
+  scroll-timeline: --ledger block;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 90px, #000 calc(100% - 140px), transparent 100%);
+}
+.ledger-inner { padding: 330px 0 380px 40px; }
+.row {
+  display: grid; grid-template-columns: 140px 1fr; align-items: baseline; padding: 22px 0;
+  border-bottom: 2px solid var(--rule);
+  animation: row-in linear both; animation-timeline: view(); animation-range: entry 10% cover 45%;
+}
+.row .op { font: 600 54px/1 var(--display); color: var(--ink-2); }
+.row .val { font: 700 92px/1 var(--display); }
+.row .val small { font: 500 34px/1 var(--text); color: var(--ink-2); margin-left: 18px; letter-spacing: 0; }
+.row.key .val { color: var(--red); }
+@keyframes row-in { from { opacity: 0.08; transform: translateX(-40px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.ledger-rail { position: absolute; left: 1380px; top: 250px; height: 700px; width: 14px; border-radius: 7px; background: var(--rule); }
+.ledger-rail::after {
+  content: ''; position: absolute; inset: 0; border-radius: 7px; background: var(--red); transform-origin: top;
+  animation: rail linear both; animation-timeline: --ledger;
+}
+.ledger-stops { position: absolute; left: 1420px; top: 250px; height: 700px; display: flex; flex-direction: column; justify-content: space-between; }
+.ledger-stops span { font: 600 30px/1 var(--label); color: var(--ink-2); transform: translateY(-50%); }
+.ledger-stops span::before { content: ''; position: absolute; left: -51px; top: 50%; width: 30px; height: 30px; margin-top: -15px; border-radius: 50%; background: var(--paper-hi); border: 6px solid var(--ink); box-sizing: border-box; }
+
+/* -------------------------------------- S5: the map that re-lays itself out
+   Gateways are real DOM boxes in a CSS grid; the layout change between
+   "one server" and "many doors" is a View Transition, scrubbed per frame.   */
+.vt-map { position: absolute; inset: 0; }
+.node {
+  position: absolute; display: grid; place-items: center; text-align: center;
+  background: var(--paper-hi); border: 7px solid var(--ink); border-radius: 26px;
+  font: 700 38px/1 var(--display);
+}
+.node.blue { border-color: var(--blue); } .node.green { border-color: var(--green); } .node.amber { border-color: var(--amber); }
+.node .sub { display: block; font: 500 22px/1.2 var(--text); color: var(--ink-2); margin-top: 6px; }
+::view-transition-group(*) { animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+::view-transition-old(*), ::view-transition-new(*) { height: 100%; width: 100%; object-fit: fill; }
+
+/* --------------------------------------------------------- snowflake bits */
+.bits { position: absolute; left: 120px; top: 640px; display: flex; gap: 4px; }
+.bits i { display: block; width: 26px; height: 64px; border-radius: 4px; background: var(--rule); }
+.bits i.t { background: var(--ink); } .bits i.m { background: var(--blue); } .bits i.s { background: var(--red); }
+
+/* ---------------------------------------------------------------- credits */
+.credits { position: absolute; left: 120px; right: 120px; top: 250px; columns: 4; column-gap: 48px; }
+.credits p { margin: 0 0 18px; font: 500 23px/1.3 var(--text); color: var(--ink-2); break-inside: avoid; }
+.credits b { font-weight: 600; color: var(--ink); }
+
+/* -------------------------------------------------- 3D projected labels */
+.l3 { position: absolute; left: 0; top: 0; white-space: nowrap; font: 600 28px/1 var(--label); color: var(--ink); }
+.l3 i { display: inline-block; width: 20px; height: 20px; border-radius: 50%; margin-right: 12px; vertical-align: -2px; }
+
+/* ------------------------------------------------------- live player */
+#player[hidden] { display: none; }
+#player { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 16px; align-items: center;
+  padding: 10px 18px; border-radius: 999px; background: rgb(21 24 28 / 0.85); color: var(--paper); font: 500 16px var(--text); }
+#player button { font: 600 16px var(--label); background: var(--paper); color: var(--ink); border: 0; border-radius: 999px; padding: 8px 18px; cursor: pointer; }
+#player button:focus-visible, #player input:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+#player input { width: 420px; accent-color: var(--red); }
+#player output { font-variant-numeric: tabular-nums; min-width: 4ch; }
+@media (prefers-reduced-motion: reduce) { #player::after { content: 'Reduced motion: paused until you press play.'; margin-left: 8px; opacity: 0.7; } }
