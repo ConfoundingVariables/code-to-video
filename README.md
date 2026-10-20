@@ -77,7 +77,7 @@ Source boundaries:
 - `production/render.mjs`: exact `frame / fps` seeks, browser screenshots, ffmpeg encoding and chapter/audio mux.
 - `production/verify.mjs`: encoded-media invariants and representative browser seeks.
 
-Most intermediate renders and uncompressed audio remain ignored under `output/`; the finished delivery files are explicitly committed. Progress is preserved in small purpose-specific commits.
+All video-related outputs are included under `output/`: the finished film, audio masters and stems, captions, timing metadata, storyboards, previews, render segments and verification captures. Dependencies, local environments and tooling caches remain ignored. The measured narration WAVs under `audio/cache/` are production assets and are included.
 
 ## Verification record
 

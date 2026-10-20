@@ -5,16 +5,6 @@ audio/.venv/
 .env.*
 .cache/
 build/
-output/*
-!output/one-million-chat.mp4
-!output/master.mp3
-!output/timeline.json
-!output/chapters.ffmeta
-!output/captions.srt
-!output/audio-report.md
-!output/storyboard.jpg
-!output/poster.jpg
-!output/verification.md
 .DS_Store
 .playwright-mcp/
 __pycache__/
