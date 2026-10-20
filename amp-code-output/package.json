@@ -1,0 +1,20 @@
+{
+  "name": "chat-scale-video",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "gsap": "^3.15.0",
+    "hyperframes": "^0.8.149",
+    "lottie-web": "^5.13.0",
+    "motion": "^14.1.0",
+    "three": "^0.186.1"
+  }
+}

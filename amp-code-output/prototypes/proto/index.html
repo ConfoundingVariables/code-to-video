@@ -1,0 +1,35 @@
+<!doctype html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=1280, height=720">
+<script src="vendor/gsap.min.js"></script>
+<style>
+body{margin:0;background:#223;color:#fff;font:24px sans-serif}
+#root{position:relative;width:100%;height:100%;overflow:hidden}
+#box{position:absolute;left:40px;top:40px;width:100px;height:100px;background:#e8d9a8}
+#feed{position:absolute;left:400px;top:40px;width:300px;height:400px;overflow:hidden;border:2px solid #fff}
+.msg{height:80px;margin:10px;background:#a9c8de;color:#000;animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+@keyframes rv{from{opacity:0;transform:translateX(-120px)}to{opacity:1;transform:none}}
+#prog{position:absolute;left:400px;top:450px;width:300px;height:10px;background:#f0f;transform-origin:left;animation:pg linear both;animation-timeline:scroll(nearest)}
+#vt{position:absolute;left:800px;top:100px;width:120px;height:120px;background:#e9a99a;view-transition-name:srv}
+#vt.big{left:900px;top:300px;width:300px;height:200px;background:#d2232a}
+html{view-transition-name:none}
+::view-transition-old(srv),::view-transition-new(srv){height:100%;animation:none}
+::view-transition-old(srv){opacity:0}
+::view-transition-group(srv){animation-duration:1s;animation-timing-function:linear}
+</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1280" data-height="720" data-duration="3">
+<div id="box"></div>
+<div id="feed"><div style="height:400px"></div><div class="msg">1</div><div class="msg">2</div><div class="msg">3</div><div class="msg">4</div><div class="msg">5</div><div class="msg">6</div><div style="height:100px"></div><div id="prog"></div></div>
+<div id="vt"></div>
+<div id="t" style="position:absolute;left:40px;bottom:40px"></div>
+</div>
+<script>
+const tl=gsap.timeline({paused:true});
+tl.to("#box",{x:200,duration:3,ease:"none"},0);
+
+tl.to("#t",{textContent:3,duration:3,ease:"none",snap:{textContent:0.01}},0);
+let started=false;
+tl.call(()=>{ if(!started&&document.startViewTransition){started=true;document.startViewTransition(()=>document.getElementById('vt').classList.add('big'));} },null,1);
+const relive={set t(v){document.getElementById('feed').scrollTop=Math.min(v,2.5)/2.5*700;for(const a of document.getAnimations()){if(a.timeline&&a.timeline!==document.timeline){a.effect?.target?.style?.removeProperty('animation-play-state');if(a.playState==='paused')a.play();}}},get t(){return 0}};
+tl.fromTo(relive,{t:0},{t:3,duration:3,ease:'none'},0);
+window.__timelines["main"]=tl;
+</script></body></html>

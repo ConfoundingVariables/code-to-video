@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>One million hellos: scaling a chat app from first principles</title>
+<style>
+@font-face{font-family:SofiaXC;src:url(__FONT_sofia-xc__) format("woff2");font-weight:800;font-display:block}
+@font-face{font-family:SofiaC;src:url(__FONT_sofia-c__) format("woff2");font-weight:100 900;font-display:block}
+@font-face{font-family:Martian;src:url(__FONT_martian__) format("woff2");font-weight:100 900;font-display:block}
+
+:root{
+  --ground:#27302E; --rail:#3B4744; --rail-lo:#1D2422; --rail-hi:#55625E;
+  --buff:#EADCB4; --blue:#A3C6DD; --green:#BBD6A6; --salmon:#EDB1A2;
+  --pencil:#D3262E; --airway:#B5247F; --ink:#1A1E1D;
+  --text:#EADCB4; --text-2:rgba(234,220,180,.74); --text-3:rgba(234,220,180,.56);
+  --spring-seat:__SPRING_SEAT__;
+  --spring-split:__SPRING_SPLIT__;
+  view-transition-name:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--ground)}
+body{font-family:SofiaC,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+::selection{background:var(--airway);color:var(--buff)}
+
+#root{position:relative;width:1920px;height:1080px;overflow:hidden;background:
+  radial-gradient(120% 90% at 30% 35%, #2C3634 0%, var(--ground) 55%, #1F2725 100%)}
+#chart{position:absolute;inset:0;width:1920px;height:1080px;display:block}
+#grain{position:absolute;inset:0;background:url(__GRAIN__) repeat;opacity:.05;mix-blend-mode:overlay;pointer-events:none;z-index:40}
+#vignette{position:absolute;inset:0;pointer-events:none;z-index:39;
+  background:radial-gradient(140% 110% at 50% 45%, transparent 55%, rgba(10,14,13,.55) 100%)}
+
+.scene{position:absolute;inset:0;opacity:0;visibility:hidden}
+.left{position:absolute;left:120px;top:176px;width:780px}
+.h{font:800 128px/.9 SofiaXC;margin:0;color:var(--text);letter-spacing:-.005em;text-wrap:balance}
+.h.xl{font-size:200px;line-height:.84}
+.sub{font:400 37px/1.26 SofiaC;color:var(--text-2);margin:36px 0 0;max-width:30ch;text-wrap:pretty}
+.note{font:600 31px/1.3 SofiaC;color:var(--text);margin:0;max-width:34ch}
+.note.red{color:#FF8A80}
+.mono{font-family:Martian,monospace;font-weight:400;letter-spacing:-.02em}
+
+.src{position:absolute;left:120px;bottom:64px;font:400 23px/1.3 SofiaC;color:var(--text-3);z-index:30;max-width:1300px}
+
+/* strips: flight progress strips in metal bays */
+.strip{position:absolute;display:flex;align-items:stretch;height:96px;background:var(--paper,var(--buff));color:var(--ink);
+  border-radius:4px;overflow:hidden;
+  box-shadow:0 10px 22px -8px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.45)}
+.strip::before{content:"";flex:0 0 24px;background:color-mix(in oklab,var(--paper,var(--buff)),#000 24%);
+  box-shadow:inset -2px 0 0 rgba(0,0,0,.12)}
+.strip .f{display:flex;flex-direction:column;justify-content:center;padding:0 22px;border-left:2px solid rgba(26,30,29,.2);white-space:nowrap}
+.strip .f:first-of-type{border-left:0}
+.strip .f i{font:600 18px/1 SofiaC;font-style:normal;opacity:.6;margin-bottom:9px}
+.strip .f b{font:700 35px/1 SofiaC;font-variant-numeric:tabular-nums}
+.strip .f b.mono{font:500 29px/1 Martian;letter-spacing:-.03em}
+.strip.sm{height:64px}.strip.sm .f{padding:0 16px}.strip.sm .f i{font-size:15px;margin-bottom:6px}.strip.sm .f b{font-size:25px}
+.strip.sm::before{flex-basis:16px}
+.buff{--paper:var(--buff)}.blue{--paper:var(--blue)}.green{--paper:var(--green)}.salmon{--paper:var(--salmon)}
+
+.bay{position:absolute;height:120px;border-radius:3px;
+  background:linear-gradient(180deg,#222A28 0%,#2D3735 18%,#2B3433 82%,#1C2321 100%);
+  box-shadow:inset 0 3px 0 var(--rail-hi),inset 0 -3px 0 var(--rail-lo),0 1px 0 rgba(255,255,255,.04)}
+.bay.sm{height:84px}
+
+svg.ov{position:absolute;inset:0;width:1920px;height:1080px;overflow:visible;pointer-events:none}
+.pen{fill:none;stroke:var(--pencil);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.92}
+.air{fill:none;stroke:var(--airway);stroke-width:5;stroke-linecap:round}
+.air.thin{stroke-width:3}
+.pen-note{position:absolute;font:700 34px/1.1 SofiaC;color:#FF8A80;transform:rotate(-3deg);white-space:nowrap}
+
+/* HUD counter: one element, two places (view transition) */
+#counter{position:absolute;z-index:35;view-transition-name:counter}
+#counter.big{left:120px;top:770px}
+#counter.hud{left:auto;right:64px;top:52px}
+#counter .strip{position:relative}
+#counter.big .strip{height:128px}
+#counter.big .strip .f i{font-size:22px}
+#counter.big .strip .f b{font-size:62px}
+#counter.hud .strip{height:72px}
+#counter.hud .strip .f{padding:0 18px}
+#counter.hud .strip .f i{font-size:15px;margin-bottom:6px}
+#counter.hud .strip .f b{font-size:32px}
+#counter.hud .strip::before{flex-basis:16px}
+::view-transition-group(counter){animation-duration:1s;animation-timing-function:var(--spring-split)}
+
+/* S0 chat */
+.composer{position:absolute;left:1080px;top:820px;width:700px;height:96px;border-radius:48px;background:var(--buff);
+  box-shadow:0 12px 26px -10px rgba(0,0,0,.6);display:flex;align-items:center;padding:0 16px 0 40px;color:var(--ink)}
+.composer .txt{font:600 40px/1 SofiaC;flex:1;display:flex;align-items:center}
+.caret{display:inline-block;width:3px;height:44px;background:var(--ink);margin-left:3px}
+.sendbtn{width:68px;height:68px;border-radius:50%;background:var(--airway);display:grid;place-items:center}
+.bubble{position:absolute;padding:20px 30px;border-radius:30px;font:600 38px/1.15 SofiaC;color:var(--ink);
+  box-shadow:0 10px 22px -10px rgba(0,0,0,.6)}
+.bubble.me{background:var(--buff);border-bottom-right-radius:8px}
+.bubble.them{background:var(--blue);border-bottom-left-radius:8px}
+.typing{width:132px;height:72px;padding:0}
+.typing .lot{position:absolute;inset:0}
+
+/* S2 phone, scroll-driven feed */
+.phone{position:absolute;left:1220px;top:150px;width:480px;height:820px;border-radius:56px;background:#141A19;
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.7),inset 0 0 0 3px #3B4744;padding:22px}
+.screen{position:absolute;inset:22px;border-radius:38px;background:#E9E1C8;overflow:hidden}
+.screen .bar{position:absolute;left:0;right:0;top:0;height:92px;background:#DCD2B4;border-bottom:2px solid rgba(26,30,29,.12);
+  display:flex;align-items:flex-end;padding:0 28px 16px;font:700 28px/1 SofiaC;color:var(--ink);z-index:2}
+.feed{position:absolute;left:0;right:0;top:92px;bottom:96px;overflow:hidden;padding:0 20px;scroll-timeline:--feed block}
+.feed .spacer{height:560px}
+.feed .m{display:block;width:fit-content;max-width:330px;margin:14px 0;padding:16px 22px;border-radius:24px;font:600 27px/1.2 SofiaC;color:var(--ink);
+  animation:bubble-in linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+.feed .m.me{margin-left:auto;background:var(--buff);border-bottom-right-radius:6px}
+.feed .m.them{background:var(--blue);border-bottom-left-radius:6px}
+.feed .m small{display:block;font:600 17px/1 SofiaC;opacity:.55;margin-bottom:6px}
+@keyframes bubble-in{from{opacity:0;transform:translateY(48px) scale(.94);filter:blur(5px)}to{opacity:1;transform:none;filter:blur(0)}}
+.track{position:absolute;right:7px;top:104px;bottom:108px;width:5px;border-radius:3px;background:rgba(26,30,29,.08)}
+.thumb{width:5px;height:90px;border-radius:3px;background:rgba(26,30,29,.45);animation:thumb linear both;animation-timeline:--feed}
+@keyframes thumb{from{transform:translateY(0)}to{transform:translateY(442px)}}
+.screen .compose{position:absolute;left:18px;right:18px;bottom:18px;height:60px;border-radius:30px;background:#F6F0DD;
+  box-shadow:inset 0 0 0 2px rgba(26,30,29,.1)}
+.screen .tp{position:absolute;left:20px;bottom:92px;width:104px;height:56px;border-radius:24px;border-bottom-left-radius:6px;background:var(--blue)}
+
+/* lanes */
+.lane-lbl{position:absolute;font:700 30px/1 SofiaC;color:var(--text)}
+.mark{position:absolute;background:var(--airway);border-radius:2px}
+.box-empty{position:absolute;width:26px;height:26px;border:3px solid var(--text-3);border-radius:4px}
+.box-full{position:absolute;width:26px;height:26px;background:var(--buff);border-radius:4px}
+.tag{position:absolute;font:500 21px/1 Martian;color:var(--buff);white-space:nowrap;letter-spacing:-.02em}
+.playhead{position:absolute;width:3px;background:var(--buff);opacity:.8}
+
+/* S3 dots */
+canvas.dots{position:absolute}
+
+/* S4 split, view transition */
+.split .strip{transition:none}
+.split .r{left:1000px;top:520px;width:820px}
+.split.spread .r1{top:176px}.split.spread .r2{top:316px}.split.spread .r3{top:456px}.split.spread .r4{top:596px}.split.spread .r5{top:736px}
+.split:not(.spread) .r:not(.r3){opacity:0}
+.r1{view-transition-name:r1}.r2{view-transition-name:r2}.r3{view-transition-name:r3}.r4{view-transition-name:r4}.r5{view-transition-name:r5}
+::view-transition-group(r1),::view-transition-group(r2),::view-transition-group(r3),::view-transition-group(r4),::view-transition-group(r5){
+  animation-duration:1.2s;animation-timing-function:var(--spring-split)}
+::view-transition-old(r3){animation-duration:.3s}
+::view-transition-new(r3){animation-duration:.6s}
+::view-transition-old(r1),::view-transition-old(r2),::view-transition-old(r3),::view-transition-old(r4),::view-transition-old(r5),
+::view-transition-new(r1),::view-transition-new(r2),::view-transition-new(r3),::view-transition-new(r4),::view-transition-new(r5){height:100%;width:100%;object-fit:fill}
+.split .mono-only{display:none}
+.split:not(.spread) .r3 .mono-only{display:flex}
+.split:not(.spread) .r3 .spread-only{display:none}
+
+/* S6 snowflake */
+.bits{position:absolute;display:flex;gap:3px}
+.bits span{display:block;width:11px;height:58px;border-radius:2px;font:500 12px/58px Martian;text-align:center;color:var(--ink)}
+.bits .s{background:#69736F}.bits .t{background:var(--buff)}.bits .mch{background:var(--blue)}.bits .q{background:var(--green)}
+.bitlbl{position:absolute;font:600 22px/1.25 SofiaC;color:var(--text-2);white-space:nowrap}
+.bitlbl b{display:block;font:700 26px/1.1 SofiaC;color:var(--text)}
+.bar{position:absolute;height:34px;border-radius:3px}
+.bar-lbl{position:absolute;font:600 24px/1 SofiaC;color:var(--text-2);white-space:nowrap}
+
+/* S7 ring */
+.ring-lbl{position:absolute;font:700 24px/1 Martian;color:var(--blue);transform:translate(-50%,-50%)}
+
+/* S10 region labels */
+.region{position:absolute;font:600 26px/1 Martian;color:var(--buff);transform:translate(-50%,-140%);white-space:nowrap;
+  padding:8px 12px;background:rgba(26,30,29,.72);border-radius:4px;box-shadow:0 0 0 2px rgba(181,36,127,.8)}
+
+/* S11 credits, scroll-driven */
+.credits{position:absolute;left:1060px;top:176px;width:740px;height:760px;overflow:hidden;scroll-timeline:--cred block;
+  mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 86%,transparent 100%)}
+.credits .pad{height:380px}
+.credits .c{display:block;padding-left:22px !important;font:500 25px/1.3 SofiaC;color:var(--text);padding:12px 0;
+  animation:cred linear both;animation-timeline:view();animation-range:cover 0% cover 100%}
+.credits .c em{font-style:normal;color:var(--text-3);display:block;font-size:20px;margin-top:4px}
+@keyframes cred{0%{opacity:.18;transform:translateX(18px)}45%,55%{opacity:1;transform:none}100%{opacity:.18;transform:translateX(-10px)}}
+.rail{position:absolute;left:1020px;top:176px;width:4px;height:760px;background:rgba(234,220,180,.12);border-radius:2px}
+.rail i{display:block;width:4px;height:100%;background:var(--airway);transform-origin:top;animation:rail linear both;animation-timeline:--cred}
+@keyframes rail{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
+@media (prefers-reduced-motion: reduce){
+  .feed .m,.credits .c{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="__DURATION__">
+  <canvas id="chart" width="1920" height="1080"></canvas>
+
+  <!-- S0 -->
+  <section class="scene" id="s0">
+    <div class="left" style="top:150px">
+      <h1 class="h xl" id="s0h">One million hellos</h1>
+      <p class="sub" id="s0sub" style="max-width:26ch">Systems design from first principles: scaling a chat app from one user to one million.</p>
+    </div>
+    <div class="bay" style="left:1060px;top:168px;width:760px"></div>
+    <div class="bay" style="left:1060px;top:304px;width:760px"></div>
+    <div class="strip buff" id="msg1" style="left:1072px;top:180px;width:736px">
+      <div class="f"><i>message</i><b class="mono">0001</b></div><div class="f"><i>from</i><b>you</b></div><div class="f"><i>to</i><b>Sam</b></div><div class="f" style="flex:1"><i>text</i><b>hi</b></div>
+    </div>
+    <div class="strip blue" id="msg2" style="left:1072px;top:316px;width:736px">
+      <div class="f"><i>message</i><b class="mono">0002</b></div><div class="f"><i>from</i><b>Sam</b></div><div class="f"><i>to</i><b>you</b></div><div class="f" style="flex:1"><i>text</i><b>hey! who else is on here?</b></div>
+    </div>
+    <div class="bubble them typing" id="s0typing" style="left:1080px;top:600px"><div class="lot" id="lot0"></div></div>
+    <div class="bubble them" id="s0reply" style="left:1080px;top:600px">hey! who else is on here?</div>
+    <div class="bubble me" id="s0hi" style="left:1650px;top:700px">hi</div>
+    <div class="composer" id="composer">
+      <div class="txt"><span id="typed"></span><span class="caret" id="caret"></span></div>
+      <div class="sendbtn" id="sendbtn"><svg width="34" height="34" viewBox="0 0 34 34"><path d="M6 17h20M18 9l8 8-8 8" fill="none" stroke="#EADCB4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+  </section>
+
+  <!-- S1 -->
+  <section class="scene" id="s1">
+    <div class="left">
+      <h2 class="h">Start with one box.</h2>
+      <p class="sub">One process holds every socket, every message and every row. It is simple, and it works until it doesn't.</p>
+    </div>
+    <div class="bay" style="left:1000px;top:164px;width:820px"></div>
+    <div class="strip blue" id="srv1" style="left:1012px;top:176px;width:796px">
+      <div class="f"><i>server</i><b>chat-01</b></div><div class="f" style="width:200px"><i>connections</i><b class="mono" id="s1conns">1</b></div><div class="f" style="width:180px"><i>requests/s</i><b class="mono" id="s1rps">2</b></div><div class="f" style="flex:1"><i>cpu</i><b class="mono" id="s1cpu">2%</b></div>
+    </div>
+    <div id="s1law" style="position:absolute;left:1000px;top:400px;width:820px">
+      <div style="font:800 150px/1 SofiaXC;color:var(--text)" id="s1eq">L = λW</div>
+      <p class="note" style="margin-top:18px;color:var(--text-2);font-weight:400" id="s1eqlbl">requests in flight = arrival rate × time each one spends inside</p>
+      <div class="mono" style="font-size:38px;margin-top:34px;color:var(--buff)" id="s1plug">1,000 = 10,000 req/s × 0.1 s</div>
+      <p class="note" style="margin-top:48px;font-weight:400;color:var(--text-2)" id="s1c10k">"It's time for web servers to handle ten thousand clients simultaneously." That was 1999.</p>
+    </div>
+    <svg class="ov" id="s1ov"></svg>
+    <div class="pen-note" id="s1pn" style="left:1290px;top:300px">one thread per client tops out</div>
+  </section>
+
+  <!-- S2 -->
+  <section class="scene" id="s2">
+    <div class="left">
+      <h2 class="h">Stop asking. Get told.</h2>
+      <p class="sub">Polling asks on a timer and mostly hears "nothing new". Long polling holds each request open. A WebSocket upgrades once and stays open both ways.</p>
+    </div>
+    <div id="lanes">
+      <div class="bay" style="left:1000px;top:200px;width:820px;height:150px"></div>
+      <div class="bay" style="left:1000px;top:400px;width:820px;height:150px"></div>
+      <div class="bay" style="left:1000px;top:600px;width:820px;height:150px"></div>
+      <div class="lane-lbl" style="left:1024px;top:220px">Polling</div>
+      <div class="lane-lbl" style="left:1024px;top:420px">Long polling</div>
+      <div class="lane-lbl" style="left:1024px;top:620px">WebSocket</div>
+      <div id="lanemarks"></div>
+      <div class="playhead" id="playhead" style="left:1040px;top:190px;height:570px"></div>
+      <p class="note" id="s2fact" style="position:absolute;left:1000px;top:800px;width:820px;font-weight:400;color:var(--text-2)">Long polling's worst case is over three network transits per message, and 30 seconds is the safer timeout.</p>
+    </div>
+    <div class="phone" id="phone">
+      <div class="screen">
+        <div class="bar">#launch &nbsp;<span style="font-weight:400;opacity:.55">6 online</span></div>
+        <div class="feed" id="feed">
+          <div class="spacer"></div>
+          <div class="m them"><small>Priya</small>who broke the build</div>
+          <div class="m me">not me, I'm in a meeting</div>
+          <div class="m them"><small>Jon</small>rolling out the gateway now</div>
+          <div class="m them"><small>Priya</small>messages feel instant</div>
+          <div class="m me">that's the open socket</div>
+          <div class="m them"><small>Sam</small>see you at a million users</div>
+          <div style="height:24px"></div>
+        </div>
+        <div class="track"><div class="thumb"></div></div>
+        <div class="tp" id="s2tp"><div class="lot" id="lot2" style="position:absolute;inset:0"></div></div>
+        <div class="compose"></div>
+      </div>
+    </div>
+    <svg class="ov" id="s2ov"></svg>
+  </section>
+
+  <!-- S3 -->
+  <section class="scene" id="s3">
+    <div class="left">
+      <h2 class="h">Scale up before you scale out.</h2>
+      <p class="sub">Event-driven I/O lets one box hold millions of mostly idle sockets. Measure the box you have before buying more.</p>
+    </div>
+    <div class="bay" style="left:1000px;top:164px;width:820px;height:150px"></div>
+    <div class="strip blue" id="s3strip" style="left:1012px;top:176px;width:796px;height:126px">
+      <div class="f"><i>one box</i><b>24 cores</b></div><div class="f"><i>memory</i><b>~96 GiB</b></div><div class="f" style="flex:1"><i>open sockets</i><b class="mono" id="s3sock" style="font-size:44px">0</b></div>
+    </div>
+    <canvas class="dots" id="s3dots" width="820" height="420" style="left:1000px;top:360px;width:820px;height:420px"></canvas>
+    <p class="note" id="s3key" style="position:absolute;left:1000px;top:800px;width:820px;font-weight:400;color:var(--text-2)">Each dot is a thousand open sockets. Phoenix later held 2 million WebSockets on one 40-core box.</p>
+    <svg class="ov" id="s3ov"></svg>
+    <div class="pen-note" id="s3pn" style="left:1450px;top:706px">one box, one blast radius</div>
+  </section>
+
+  <!-- S4 -->
+  <section class="scene" id="s4">
+    <div class="left">
+      <h2 class="h">Split the box by job.</h2>
+      <p class="sub">Copy the stateless parts. Give sockets their own tier. Hash each user and channel to a single owner.</p>
+      <p class="note" id="s4fact" style="margin-top:54px;font-weight:400;color:var(--text-2)">Slack's gateways run in several regions and deliver a message across the world in about 500 ms.</p>
+    </div>
+    <div class="split" id="split">
+      <div class="strip blue r r1"><div class="f"><i>edge</i><b>load balancer</b></div><div class="f" style="flex:1"><i>job</i><b>route, drain, never drop sockets</b></div></div>
+      <div class="strip blue r r2"><div class="f"><i>api ×12</i><b>stateless</b></div><div class="f" style="flex:1"><i>job</i><b>scale by copying</b></div></div>
+      <div class="strip blue r r3">
+        <div class="f mono-only"><i>server</i><b>chat-01</b></div><div class="f mono-only" style="flex:1"><i>job</i><b>everything</b></div>
+        <div class="f spread-only"><i>gateway ×40</i><b>WebSockets</b></div><div class="f spread-only" style="flex:1"><i>job</i><b>hold sockets, per region</b></div>
+      </div>
+      <div class="strip blue r r4"><div class="f"><i>presence</i><b>hashed by user</b></div><div class="f" style="flex:1"><i>job</i><b>who is online right now</b></div></div>
+      <div class="strip blue r r5"><div class="f"><i>channel servers</i><b>hashed by channel</b></div><div class="f" style="flex:1"><i>at peak</i><b>~16 M channels per host</b></div></div>
+    </div>
+    <svg class="ov" id="s4ov"></svg>
+  </section>
+
+  <!-- S5 -->
+  <section class="scene" id="s5">
+    <div class="left">
+      <h2 class="h">One message, many sockets.</h2>
+      <p class="sub">Gateways subscribe to the channels their users are in. A pub/sub bus copies each message to every interested gateway.</p>
+    </div>
+    <svg class="ov" id="s5ov"></svg>
+    <div class="strip buff sm" id="s5you" style="left:1000px;top:170px;width:250px"><div class="f"><i>sender</i><b>you</b></div><div class="f"><i>channel</i><b>#launch</b></div></div>
+    <div class="strip blue sm" id="s5ga" style="left:1000px;top:300px;width:250px"><div class="f"><i>gateway</i><b>A</b></div><div class="f"><i>region</i><b>us-east</b></div></div>
+    <div class="tag" style="left:1300px;top:384px;color:#E04FA6;font-weight:600">pub/sub bus</div>
+    <div class="strip blue sm" id="s5gb" style="left:1000px;top:560px;width:230px"><div class="f"><i>gateway</i><b>B</b></div></div>
+    <div class="strip blue sm" id="s5gc" style="left:1290px;top:560px;width:230px"><div class="f"><i>gateway</i><b>C</b></div></div>
+    <div class="strip blue sm" id="s5gd" style="left:1580px;top:560px;width:230px"><div class="f"><i>gateway</i><b>D</b></div></div>
+    <canvas class="dots" id="s5dots" width="820" height="150" style="left:1000px;top:660px;width:820px;height:150px"></canvas>
+    <div id="s5math" style="position:absolute;left:1000px;top:836px;width:820px">
+      <div class="strip salmon sm" style="position:relative;width:820px"><div class="f" style="width:200px"><i>online</i><b class="mono" id="s5n">1,000</b></div><div class="f" style="flex:1"><i>one message each, to everyone</i><b class="mono" id="s5n2">1,000,000 deliveries</b></div></div>
+    </div>
+    <div class="pen-note" id="s5pn" style="left:1560px;top:912px">grows as n²</div>
+    <p class="note red" id="s5redis" style="position:absolute;left:120px;top:720px;width:780px;font-weight:600">Plain Redis Pub/Sub is at-most-once: if a subscriber drops, that message is gone.</p>
+  </section>
+
+  <!-- S6 -->
+  <section class="scene" id="s6">
+    <div class="left">
+      <h2 class="h">Write it down, in order.</h2>
+      <p class="sub">Chat is write-heavy and read newest-first. Give every message a sortable ID and partition by conversation and time.</p>
+    </div>
+    <div class="tag" style="left:1000px;top:166px;color:var(--text-2)">message_id, a 64-bit Snowflake</div>
+    <div class="bits" id="bits" style="left:1000px;top:204px"></div>
+    <div class="bitlbl" style="left:1013px;top:276px"><b>time</b>41 bits, 69 years of ms</div>
+    <div class="bitlbl" style="left:1538px;top:276px"><b>machine</b>10 bits, 1,024</div>
+    <div class="bitlbl" style="left:1680px;top:276px"><b>sequence</b>12 bits, 4,096/ms</div>
+    <div class="bay" style="left:1000px;top:372px;width:820px"></div>
+    <div class="strip green" id="s6key" style="left:1012px;top:384px;width:796px">
+      <div class="f"><i>partition key</i><b class="mono">(channel_id, bucket)</b></div><div class="f" style="flex:1"><i>bucket</i><b>~10 days, under 100 MB</b></div>
+    </div>
+    <div id="s6hist">
+      <div class="strip green sm h1" style="left:1000px;top:540px;width:400px"><div class="f"><i>MongoDB, 2015</i><b>one replica set</b></div><div class="f"><i>broke at</i><b>100 M msgs</b></div></div>
+      <div class="strip green sm h2" style="left:1420px;top:540px;width:400px"><div class="f"><i>Cassandra, 2017</i><b>12 nodes</b></div><div class="f"><i>writes</i><b>sub-ms</b></div></div>
+      <div class="strip green sm h3" style="left:1000px;top:624px;width:400px"><div class="f"><i>Cassandra, 2022</i><b>177 nodes</b></div><div class="f"><i>holding</i><b>trillions</b></div></div>
+      <div class="strip green sm h4" style="left:1420px;top:624px;width:400px"><div class="f"><i>ScyllaDB, 2022</i><b>72 nodes</b></div><div class="f"><i>per node</i><b>~9 TB</b></div></div>
+    </div>
+    <div class="bar-lbl" style="left:1000px;top:740px">p99 read, historical messages</div>
+    <div class="bar" id="s6bar1" style="left:1000px;top:778px;width:820px;background:var(--pencil);transform-origin:left"></div>
+    <div class="tag" id="s6t1" style="left:1010px;top:785px;color:var(--buff)">Cassandra 40–125 ms</div>
+    <div class="bar" id="s6bar2" style="left:1000px;top:826px;width:98px;background:var(--blue);transform-origin:left"></div>
+    <div class="tag" id="s6t2" style="left:1112px;top:833px;color:var(--blue)">ScyllaDB 15 ms</div>
+    <svg class="ov" id="s6ov"></svg>
+  </section>
+
+  <!-- S7 -->
+  <section class="scene" id="s7">
+    <div class="left">
+      <h2 class="h">Spread the load. Cache the answers.</h2>
+      <p class="sub">Consistent hashing moves only one slice of keys when a node joins. A cache absorbs the hot reads.</p>
+    </div>
+    <svg class="ov" id="s7ov"></svg>
+    <div id="s7lbls"></div>
+    <p class="note" id="s7quorum" style="position:absolute;left:1000px;top:850px;width:820px;font-weight:400;color:var(--text-2)">Each key lives on N nodes. Reads and writes need R and W of them, with R + W &gt; N. Dynamo often ran (3, 2, 2).</p>
+    <div id="s7lease" style="position:absolute;left:120px;top:690px;width:780px">
+      <div class="bar-lbl" style="position:relative">peak database queries during a thundering herd</div>
+      <div class="bar" id="s7b1" style="position:relative;margin-top:16px;width:780px;background:var(--pencil);transform-origin:left"></div>
+      <div class="tag" style="position:relative;margin-top:10px">no leases: 17K/s</div>
+      <div class="bar" id="s7b2" style="position:relative;margin-top:16px;width:60px;background:var(--blue);transform-origin:left"></div>
+      <div class="tag" style="position:relative;margin-top:10px;color:var(--blue)">memcache leases: 1.3K/s</div>
+    </div>
+  </section>
+
+  <!-- S8 -->
+  <section class="scene" id="s8">
+    <div class="left">
+      <h2 class="h">Deliver at least once. Apply exactly once.</h2>
+      <p class="sub">Networks lose acks, so senders retry. Tag each send with an ID and let the server ignore repeats.</p>
+    </div>
+    <div class="strip buff sm" id="s8client" style="left:1000px;top:180px;width:300px"><div class="f"><i>client</i><b>your phone</b></div></div>
+    <div class="bay sm" style="left:1380px;top:170px;width:440px;height:84px"></div>
+    <div class="tag" style="left:1380px;top:146px;color:var(--text-2)">server log</div>
+    <div class="strip buff sm" id="s8m1" style="left:1000px;top:280px;width:440px"><div class="f"><i>Idempotency-Key</i><b class="mono">AGJ6FJMkGQIpHUTX</b></div><div class="f"><i>text</i><b>on my way</b></div></div>
+    <div class="strip buff sm" id="s8m2" style="left:1000px;top:280px;width:440px"><div class="f"><i>Idempotency-Key</i><b class="mono">AGJ6FJMkGQIpHUTX</b></div><div class="f"><i>text</i><b>on my way</b></div></div>
+    <svg class="ov" id="s8ov"></svg>
+    <div class="pen-note" id="s8pn1" style="left:1190px;top:250px">ack lost</div>
+    <div class="pen-note" id="s8pn2" style="left:1460px;top:350px">same key: dropped</div>
+    <div class="tag" style="left:1000px;top:484px;color:var(--text-2)">one ordered log per conversation, one pointer per device</div>
+    <div class="bay" style="left:1000px;top:520px;width:820px;height:100px"></div>
+    <div id="s8log"></div>
+    <div class="tag" id="s8pl" style="left:0;top:660px;color:var(--blue)">▲ laptop</div>
+    <div class="tag" id="s8pp" style="left:0;top:700px;color:var(--salmon)">▲ phone, offline</div>
+    <p class="note" id="s8fact" style="position:absolute;left:1000px;top:780px;width:820px;font-weight:400;color:var(--text-2)">Kafka is at-least-once by default. Messenger's Iris keeps a totally ordered queue with a pointer per device; it cut data use by about 40%.</p>
+  </section>
+
+  <!-- S9 -->
+  <section class="scene" id="s9">
+    <div class="left">
+      <h2 class="h">Plan for the bad day.</h2>
+      <p class="sub">Retries multiply. Retry at one layer, budget it, shed what can wait, and treat push as a wake-up call.</p>
+    </div>
+    <div id="s9stack"></div>
+    <svg class="ov" id="s9ov"></svg>
+    <div class="pen-note" id="s9pn" style="left:1560px;top:740px">243× load</div>
+    <p class="note" id="s9fix" style="position:absolute;left:120px;top:700px;width:780px;font-weight:600">A 10% retry budget keeps the worst case near 1.1×.</p>
+    <div class="strip salmon sm" id="s9push" style="left:120px;top:810px;width:780px"><div class="f"><i>push, phone offline</i><b>APNs</b></div><div class="f"><i>payload</i><b>≤ 4 KB</b></div><div class="f" style="flex:1"><i>while offline</i><b>keeps one per app</b></div></div>
+  </section>
+
+  <!-- S10 -->
+  <section class="scene" id="s10">
+    <div class="left" style="top:auto;bottom:150px;width:900px">
+      <h2 class="h">One million online.</h2>
+      <p class="sub" style="max-width:36ch">Gateways in every region, and an eye on the tail: "the 99th percentile of one backend can easily become the median response of your frontend."</p>
+    </div>
+    <div id="regions"></div>
+  </section>
+
+  <!-- S11 -->
+  <section class="scene" id="s11">
+    <div class="left" style="width:820px">
+      <h2 class="h" style="font-size:104px">Every step answered one bottleneck.</h2>
+    </div>
+    <div id="recap"></div>
+    <div class="rail"><i></i></div>
+    <div class="credits" id="credits"><div class="pad"></div>__CREDITS__<div class="pad"></div></div>
+    <div id="endcard" style="position:absolute;inset:0;display:grid;place-items:center;opacity:0">
+      <div style="text-align:center">
+        <div class="h xl" style="font-size:180px">One million hellos</div>
+        <p class="sub" style="margin:28px auto 0;max-width:none">31 sources. Every number on screen comes from one of them.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="counter" class="big"><div class="strip buff"><div class="f"><i>users online</i><b class="mono" id="count">1</b></div></div></div>
+  <div class="src" id="src"></div>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+</div>
+<script>__BUNDLE__</script>
+</body>
+</html>

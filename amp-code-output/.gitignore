@@ -1,0 +1,6 @@
+node_modules/
+.venv/
+vendor-skills/
+out/stills/
+out/video.mp4
+audio/*.wav
